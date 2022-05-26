@@ -38,8 +38,9 @@ const ReadMethodCard = ({ value, contract }) => {
           <div className="flex ">
             {value.inputs.length <= 0 && (
               <>
-                <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                  {value?.resp}
+                <label className="inline-block mb-2 text-sm text-gray-500 break-all form-label">
+                  {/* {value?.resp} */}
+                  {JSON.stringify(value?.resp)}
                 </label>
               </>
             )}
@@ -47,7 +48,8 @@ const ReadMethodCard = ({ value, contract }) => {
               <>
                 <div className="mb-3 xl:w-96">
                   <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                    { ivalue?.name?.trim()!==""?ivalue?.name:"_"} :  {ivalue?.internalType}
+                    {ivalue?.name?.trim() !== '' ? ivalue?.name : '_'} :{' '}
+                    {ivalue?.internalType}
                   </label>
                   <input
                     type="text"
@@ -87,7 +89,7 @@ const ReadMethodCard = ({ value, contract }) => {
         </form>
         <p className="mb-2 text-sm text-gray-500 form-label">
           o/p :{/* {JSON.stringify(value?.outputs)} */}
-          {value?.outputs?.map(({ type,...ivalue }) => {
+          {value?.outputs?.map(({ type, ...ivalue }) => {
             return (
               <span className="mx-2">
                 {' '}
@@ -104,7 +106,7 @@ const ReadMethodCard = ({ value, contract }) => {
                 return (
                   <span className="mx-2">
                     {' '}
-                    {val?.name?.trim() !== '' ? val?.name : '_'} : {output[idx]}
+                    {val?.name?.trim() !== '' ? val?.name : '_'} : {JSON.stringify(output[idx])}
                   </span>
                 )
               })}
