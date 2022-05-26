@@ -4,6 +4,8 @@ import Web3 from 'web3'
 import factory from '../config/abis/factory.json'
 import { useEffect, useState } from 'react'
 import Header from '../components/Header/Header'
+import WriteMethodCard from '../components/MethodCard/WriteMethodCard'
+import ReadMethodCard from '../components/MethodCard/ReadMethodCard'
 export default function Home() {
   const [interfaces, setinterfaces] = useState([])
   const [readableInterfaces, setreadableInterfaces] = useState([])
@@ -11,6 +13,7 @@ export default function Home() {
   const [contractAddress, setContractAddress] = useState('')
   const [rpcUrl, setrpcUrl] = useState('')
   const [showWritables, setshowWritables] = useState(false)
+  const [contractState, setcontract] = useState(null)
   // useEffect(() => {
   //   console.log({ iabi })
   //   const contract = new web3Client.eth.Contract(
@@ -62,11 +65,11 @@ export default function Home() {
           return value
         }
       })
-
     console.log({ writablejsonInterface, jsonInterface, readablejsonInterface })
     setinterfaces(writablejsonInterface)
     Promise.all(readablejsonInterface).then((val) => {
       console.log({ val })
+    setcontract(contract)
 
       setreadableInterfaces(val)
     })
@@ -78,7 +81,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="">
-        <Header />
+        <Header contract={contractState} />
         <div className="grid grid-cols-2 p-5 m-5 my-5 h-96 ">
           <div className="mx-5">
             <h1>ABI</h1>
@@ -209,41 +212,45 @@ border-gray-500 bg-gray-800 bg-clip-padding
               <h1 className="my-5 text-bold"> Writable Contract Information</h1>
               {interfaces.map((value, idx) => {
                 return (
-                  <div className="p-5 my-5 rounded-lg bg-slate-900">
-                    <p>{value?.name}</p>
+                  //                 <div className="p-5 my-5 rounded-lg bg-slate-900">
 
-                    {value?.inputs?.map((value) => (
-                      <>
-                        <div className="mb-3 xl:w-96">
-                          <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                            {value?.internalType}
-                          </label>
-                          <input
-                            type="text"
-                            className="
-        form-control
-        m-0
-        block
-        w-full
-        rounded
-        border
-        border-solid
-  border-gray-500 bg-gray-800 bg-clip-padding
-        px-3 py-1.5 text-base
-        font-normal
-        text-gray-200
-        transition
-        ease-in-out
-        focus:border-blue-600 focus:text-gray-100 focus:text-gray-700 focus:outline-none
-      "
-                            id="exampleFormControlInput1"
-                            placeholder={value?.internalType}
-                          />
-                        </div>
-                        {/* <input type="text" /> */}
-                      </>
-                    ))}
-                  </div>
+                  //                   <p>{value?.name}</p>
+
+                  //                   {value?.inputs?.map((value) => (
+                  //                     <>
+                  //                       <div className="mb-3 xl:w-96">
+                  //                         <label className="inline-block mb-2 text-sm text-gray-500 form-label">
+                  //                           {value?.internalType}
+                  //                         </label>
+                  //                         <input
+                  //                           type="text"
+                  //                           className="
+                  //       form-control
+                  //       m-0
+                  //       block
+                  //       w-full
+                  //       rounded
+                  //       border
+                  //       border-solid
+                  // border-gray-500 bg-gray-800 bg-clip-padding
+                  //       px-3 py-1.5 text-base
+                  //       font-normal
+                  //       text-gray-200
+                  //       transition
+                  //       ease-in-out
+                  //       focus:border-blue-600 focus:text-gray-100 focus:text-gray-700 focus:outline-none
+                  //     "
+                  //                           id="exampleFormControlInput1"
+                  //                           placeholder={value?.internalType}
+                  //                         />
+                  //                       </div>
+                  //                       {/* <input type="text" /> */}
+                  //                     </>
+                  //                   ))}
+                  //                 </div>
+                  <>
+                    <WriteMethodCard value={value} key={value.name} contract={ contractState} />
+                  </>
                 )
               })}
             </div>
@@ -252,65 +259,72 @@ border-gray-500 bg-gray-800 bg-clip-padding
               <h1 className="my-5 text-bold"> Readable Contract Information</h1>
               {readableInterfaces.map((value, idx) => {
                 return (
-                  <div className="p-5 my-5 rounded-lg bg-slate-900">
-                    <p>{value?.name}</p>
-                    <div className="flex ">
-                      {value.inputs.length <= 0 && (
-                        <>
-                          <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                            {value?.resp}
-                          </label>
-                        </>
-                      )}
-                      {value?.inputs?.map((value) => (
-                        <>
-                          <div className="mb-3 xl:w-96">
-                            <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                              {value?.internalType}
-                            </label>
-                            <input
-                              type="text"
-                              className="
-        form-control
-        m-0
-        block
-        w-full
-        rounded
-        border
-        border-solid
-        border-gray-500 bg-gray-800  bg-clip-padding
-        px-3 py-1.5 text-base
-        font-normal
-        text-gray-200
-        transition
-        ease-in-out
-        focus:border-blue-600 focus:text-gray-100 focus:outline-none
-      "
-                              id="exampleFormControlInput1"
-                              placeholder={value?.internalType}
-                            />
-                          </div>
-                        </>
-                      ))}
-                    </div>
-                    {value.inputs.length > 0 && (
-                      <>
-                        <button
-                          className="px-5 py-2 my-2 text-sm bg-blue-600 rounded-md "
-                          onClick={handleFetchContract}
-                        >
-                          Call Contract
-                        </button>
-                      </>
-                    )}
+                  //             <div className="p-5 my-5 rounded-lg bg-slate-900">
+                  //               <p>{value?.name}</p>
+                  //               <div className="flex ">
+                  //                 {value.inputs.length <= 0 && (
+                  //                   <>
+                  //                     <label className="inline-block mb-2 text-sm text-gray-500 form-label">
+                  //                       {value?.resp}
+                  //                     </label>
+                  //                   </>
+                  //                 )}
+                  //                 {value?.inputs?.map((value) => (
+                  //                   <>
+                  //                     <div className="mb-3 xl:w-96">
+                  //                       <label className="inline-block mb-2 text-sm text-gray-500 form-label">
+                  //                         {value?.internalType}
+                  //                       </label>
+                  //                       <input
+                  //                         type="text"
+                  //                         className="
+                  //   form-control
+                  //   m-0
+                  //   block
+                  //   w-full
+                  //   rounded
+                  //   border
+                  //   border-solid
+                  //   border-gray-500 bg-gray-800  bg-clip-padding
+                  //   px-3 py-1.5 text-base
+                  //   font-normal
+                  //   text-gray-200
+                  //   transition
+                  //   ease-in-out
+                  //   focus:border-blue-600 focus:text-gray-100 focus:outline-none
+                  // "
+                  //                         id="exampleFormControlInput1"
+                  //                         placeholder={value?.internalType}
+                  //                       />
+                  //                     </div>
+                  //                   </>
+                  //                 ))}
+                  //               </div>
+                  //               {value.inputs.length > 0 && (
+                  //                 <>
+                  //                   <button
+                  //                     className="px-5 py-2 my-2 text-sm bg-blue-600 rounded-md "
+                  //                     onClick={handleFetchContract}
+                  //                   >
+                  //                     Call Contract
+                  //                   </button>
+                  //                 </>
+                  //               )}
 
-                    <p className="mb-2 text-sm text-gray-500 form-label">
-                      o/p :{/* {JSON.stringify(value?.outputs)} */}
-                      {value?.outputs?.map(({ type }) => {
-                        return <span className="mx-2">{type} </span>
-                      })}
-                    </p>
-                  </div>
+                  //               <p className="mb-2 text-sm text-gray-500 form-label">
+                  //                 o/p :{/* {JSON.stringify(value?.outputs)} */}
+                  //                 {value?.outputs?.map(({ type }) => {
+                  //                   return <span className="mx-2">{type} </span>
+                  //                 })}
+                  //               </p>
+                  //             </div>
+                  <>
+                    <ReadMethodCard
+                      value={value}
+                      key={value.name}
+                      contract={contractState}
+                    />
+                  </>
                 )
               })}
             </div>
