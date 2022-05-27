@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react'
 import Header from '../components/Header/Header'
 import WriteMethodCard from '../components/MethodCard/WriteMethodCard'
 import ReadMethodCard from '../components/MethodCard/ReadMethodCard'
+
+import { ToastProvider, useToasts } from 'react-toast-notifications'
+
 export default function Home() {
   const [interfaces, setinterfaces] = useState([])
   const [readableInterfaces, setreadableInterfaces] = useState([])
@@ -14,6 +17,8 @@ export default function Home() {
   const [rpcUrl, setrpcUrl] = useState('')
   const [showWritables, setshowWritables] = useState(false)
   const [contractState, setcontract] = useState(null)
+  const { addToast } = useToasts()
+
   // useEffect(() => {
   //   console.log({ iabi })
   //   const contract = new web3Client.eth.Contract(
@@ -35,44 +40,65 @@ export default function Home() {
   // }, [iabi])
   const handleFetchContract = () => {
     // 0xe9e7cea3dedca5984780bafc599bd69add087d56 BUSD-BNBChain
-    const web3Client = new Web3(rpcUrl)
+    try {
+      const web3Client = new Web3(rpcUrl)
 
-    const contract = new web3Client.eth.Contract(
-      iabi !== '' ? JSON.parse(iabi) : [],
-      contractAddress
-    )
-    const jsonInterface = contract._jsonInterface
-    const writablejsonInterface = jsonInterface.filter(
-      (value, idx) =>
-        value.stateMutability !== 'view' && value.type === 'function'
-    )
-    const readablejsonInterface = jsonInterface
-      .filter(
-        (value, idx) =>
-          value.stateMutability == 'view' && value.type === 'function'
+      const contract = new web3Client.eth.Contract(
+        iabi !== '' ? JSON.parse(iabi) : [],
+        contractAddress
       )
-      .map(async (value, idx) => {
-        // const decimals = await contract.methods['_decimals']().call()
-        // console.log('contract', decimals)
-        if (value.inputs.length <= 0) {
-          const resp = await contract.methods[value.name]().call()
-          console.log({ resp })
-          return {
-            ...value,
-            resp,
+      const jsonInterface = contract._jsonInterface
+      const writablejsonInterface = jsonInterface.filter(
+        (value, idx) =>
+          value.stateMutability !== 'view' && value.type === 'function'
+      )
+      const readablejsonInterface = jsonInterface
+        .filter(
+          (value, idx) =>
+            value.stateMutability == 'view' && value.type === 'function'
+        )
+        .map(async (value, idx) => {
+          // const decimals = await contract.methods['_decimals']().call()
+          // console.log('contract', decimals)
+          if (value.inputs.length <= 0) {
+            try {
+              
+              const resp = await contract.methods[value.name]().call()
+              console.log({ resp })
+              return {
+                ...value,
+                resp,
+              }
+            } catch (error) {
+                if (error) {
+                  addToast(error.message, { appearance: 'error', autoDismiss:true })
+                }
+             return {
+               ...value
+             }
+            }
+          } else {
+            return value
           }
-        } else {
-          return value
-        }
+        })
+      console.log({
+        writablejsonInterface,
+        jsonInterface,
+        readablejsonInterface,
       })
-    console.log({ writablejsonInterface, jsonInterface, readablejsonInterface })
-    setinterfaces(writablejsonInterface)
-    Promise.all(readablejsonInterface).then((val) => {
-      console.log({ val })
-    setcontract(contract)
+      setinterfaces(writablejsonInterface)
+      
+      Promise.all(readablejsonInterface).then((val) => {
+        console.log({ val })
+        setcontract(contract)
 
-      setreadableInterfaces(val)
-    })
+        setreadableInterfaces(val)
+      })
+    } catch (error) {
+      if (error) {
+        addToast(error.message, { appearance: 'error', autoDismiss: true })
+      }
+    }
   }
   return (
     <div className="min-h-screen text-white bg-gradient-to-r from-slate-900 to-gray-900">
@@ -81,6 +107,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="">
+
         <Header contract={contractState} />
         <div className="grid grid-cols-2 p-5 m-5 my-5 h-96 ">
           <div className="mx-5">
@@ -107,8 +134,14 @@ export default function Home() {
               value={iabi}
               onChange={(e) => {
                 // console.log(e.target.value);
-                console.log('JSON', JSON.parse(e.target.value), factory)
-                setiabi(e.target.value)
+                try {
+                  // console.log('JSON', JSON.parse(e.target.value), factory)
+                  setiabi(e.target.value)
+                } catch (error) {
+                  if (error) {
+                    addToast(error.message, { appearance: 'error' })
+                  }
+                }
               }}
             ></textarea>
             <div></div>
@@ -249,7 +282,11 @@ border-gray-500 bg-gray-800 bg-clip-padding
                   //                   ))}
                   //                 </div>
                   <>
-                    <WriteMethodCard value={value} key={value.name} contract={ contractState} />
+                    <WriteMethodCard
+                      value={value}
+                      key={value.name}
+                      contract={contractState}
+                    />
                   </>
                 )
               })}
