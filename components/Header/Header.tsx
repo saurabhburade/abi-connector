@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import WalletConnect from '../WalletConnect/WalletConnect'
 
 type Props = {}
 
@@ -20,6 +21,7 @@ export default function Header(props) {
           docs
         </a>
         <button className="px-5 py-2 mx-3 text-sm bg-blue-600 rounded-md">Connect</button>
+        <WalletConnect/>
       </div>
     </div>
   )
