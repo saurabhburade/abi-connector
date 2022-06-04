@@ -11,18 +11,8 @@ export const injected = new InjectedConnector({
 
 export const wallets = [
   {
-    name: 'Metamask',
-    connector: injected,
-    logo: 'https://cdn.iconscout.com/icon/free/png-256/metamask-2728406-2261817.png',
-  },
-  {
     name: 'Injected',
     connector: injected,
     logo: 'https://cdn.iconscout.com/icon/free/png-256/metamask-2728406-2261817.png',
-  },
-  {
-    name: 'Injected',
-    connector: injected,
-    logo: 'https://cdn.iconscout.com/icon/free/png-256/metamask-2728406-2261817.png',
-  },
+  }
 ]

@@ -9,6 +9,7 @@ import ReadMethodCard from '../components/MethodCard/ReadMethodCard'
 
 import { ToastProvider, useToasts } from 'react-toast-notifications'
 import useWeb3 from '../hooks/useWeb3'
+import WalletConnect from '../components/WalletConnect/WalletConnect'
 
 export default function Home() {
   const [interfaces, setinterfaces] = useState([])
@@ -301,6 +302,8 @@ border-gray-500 bg-gray-800 bg-clip-padding
           ) : (
             <div className="mx-5">
               <h1 className="my-5 text-bold"> Readable Contract Information</h1>
+                <WalletConnect rpc={ rpcUrl} />
+
               {readableInterfaces.map((value, idx) => {
                 return (
                   //             <div className="p-5 my-5 rounded-lg bg-slate-900">

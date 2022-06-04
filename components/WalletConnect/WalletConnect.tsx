@@ -5,17 +5,40 @@ import { wallets } from '../../config/wallets'
 import { useWeb3React } from '@web3-react/core'
 import { supportedChainIds } from '../../config/wallets'
 import { ChainId } from '../../config/chainIds'
+import Web3 from 'web3'
+import { InjectedConnector } from '@web3-react/injected-connector'
 type Props = {}
+//  const injected = new InjectedConnector({
+//    supportedChainIds,
+//  })
+// const wallets = [
+//   {
+//     name: 'Metamask',
+//     connector: injected,
+//     logo: 'https://cdn.iconscout.com/icon/free/png-256/metamask-2728406-2261817.png',
+//   },
+//   {
+//     name: 'Injected',
+//     connector: injected,
+//     logo: 'https://cdn.iconscout.com/icon/free/png-256/metamask-2728406-2261817.png',
+//   },
+//   {
+//     name: 'Injected',
+//     connector: injected,
+//     logo: 'https://cdn.iconscout.com/icon/free/png-256/metamask-2728406-2261817.png',
+//   },
+// ]
 
-const WalletConnect = (props: Props) => {
-  let [isOpen, setIsOpen] = useState(true)
+const WalletConnect = ({ rpc }) => {
+  let [isOpen, setIsOpen] = useState(false)
   const [customChainId, setcustomChainId] = useState(1)
+  // const [customRPC, setcustomRPC] = useState('')
   const { connector, activate, account, chainId } = useWeb3React()
-//   console.log(
-//     { supportedChainIds, ChainId: Object.getOwnPropertyNames(ChainId) },
-//     ChainId,
-//     chainId
-//   )
+  //   console.log(
+  //     { supportedChainIds, ChainId: Object.getOwnPropertyNames(ChainId) },
+  //     ChainId,
+  //     chainId
+  //   )
   function closeModal() {
     setIsOpen(false)
   }
@@ -24,8 +47,48 @@ const WalletConnect = (props: Props) => {
     setIsOpen(true)
   }
   useEffect(() => {
-    console.log({ window: window?.ethereum })
-  }, [])
+    console.log({ rpc })
+
+    const fetchChain = async () => {
+      const web3Client = new Web3(rpc)
+      const chainId = await web3Client.eth.getChainId()
+      console.log({ chainId })
+      setcustomChainId(chainId)
+    }
+    if (!!rpc) {
+      fetchChain()
+    }
+  }, [rpc])
+
+  const handleConnect = async () => {
+    const injected = new InjectedConnector({
+      supportedChainIds: [customChainId],
+    })
+
+    try {
+      if (window?.ethereum?.networkVersion !== customChainId) {
+        await window?.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: Web3.utils.toHex(customChainId) }],
+        })
+      }
+
+      console.log('====================================')
+      console.log({
+        injected,
+        eth: window?.ethereum,
+
+        customChainId: Web3.utils.toHex(customChainId),
+      })
+
+      console.log('====================================')
+
+      activate(injected)
+      closeModal()
+    } catch (error) {
+      console.log({ error })
+    }
+  }
   return (
     <div>
       <button
@@ -75,35 +138,6 @@ const WalletConnect = (props: Props) => {
                   <div className="mt-2">
                     <div className="my-5">
                       <label className="inline-block text-sm text-gray-200 form-label">
-                        Chain Id
-                      </label>
-                      <input
-                        type="text"
-                        className="
-                        form-control
-        m-0
-        block
-        w-full
-        rounded
-        border
-        border-solid
-        border-gray-500
-   bg-gray-800 bg-clip-padding px-3
-        py-1.5 text-sm text-base
-        font-normal
-        text-gray-500
-        transition
-        ease-in-out
-        focus:border-blue-600 focus:text-gray-100 focus:text-gray-700 focus:outline-none
-      "
-                        value={customChainId}
-                        onChange={(e) => setcustomChainId(e.target.value)}
-                        id="exampleFormControlInput3"
-                        placeholder="Enter Chain ID"
-                      />
-                    </div>
-                    <div className="my-5">
-                      <label className="inline-block text-sm text-gray-200 form-label">
                         RPC URL
                       </label>
                       <input
@@ -125,8 +159,39 @@ const WalletConnect = (props: Props) => {
         ease-in-out
         focus:border-blue-600 focus:text-gray-100 focus:text-gray-700 focus:outline-none
       "
+                        value={rpc}
+                        // onChange={(e) => setcustomChainId(e.target.value)}
+                        disabled
+                        id="exampleFormControlInput3"
+                        placeholder="Enter Chain ID"
+                      />
+                    </div>
+                    <div className="my-5">
+                      <label className="inline-block text-sm text-gray-200 form-label">
+                        CHAIN ID
+                      </label>
+                      <input
+                        type="text"
+                        className="
+                        form-control
+        m-0
+        block
+        w-full
+        rounded
+        border
+        border-solid
+        border-gray-500
+   bg-gray-800 bg-clip-padding px-3
+        py-1.5 text-sm text-base
+        font-normal
+        text-gray-500
+        transition
+        ease-in-out
+        focus:border-blue-600 focus:text-gray-100 focus:text-gray-700 focus:outline-none
+      "
                         value={customChainId}
-                        onChange={(e) => setcustomChainId(e.target.value)}
+                        disabled
+                        // onChange={(e) => setcustomChainId(e.target.value)}
                         id="exampleFormControlInput3"
                         placeholder="Enter Chain ID"
                       />
@@ -136,9 +201,7 @@ const WalletConnect = (props: Props) => {
                         return (
                           <>
                             <div
-                              onClick={() => {
-                                activate(val.connector)
-                              }}
+                              onClick={handleConnect}
                               className="p-5 m-1 cursor-pointer rounded-2xl bg-slate-700"
                             >
                               <img
