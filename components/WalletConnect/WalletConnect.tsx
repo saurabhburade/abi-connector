@@ -11,11 +11,11 @@ const WalletConnect = (props: Props) => {
   let [isOpen, setIsOpen] = useState(true)
   const [customChainId, setcustomChainId] = useState(1)
   const { connector, activate, account, chainId } = useWeb3React()
-  console.log(
-    { supportedChainIds, ChainId: Object.getOwnPropertyNames(ChainId) },
-    ChainId,
-    chainId
-  )
+//   console.log(
+//     { supportedChainIds, ChainId: Object.getOwnPropertyNames(ChainId) },
+//     ChainId,
+//     chainId
+//   )
   function closeModal() {
     setIsOpen(false)
   }

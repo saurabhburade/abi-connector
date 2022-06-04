@@ -8,6 +8,7 @@ import WriteMethodCard from '../components/MethodCard/WriteMethodCard'
 import ReadMethodCard from '../components/MethodCard/ReadMethodCard'
 
 import { ToastProvider, useToasts } from 'react-toast-notifications'
+import useWeb3 from '../hooks/useWeb3'
 
 export default function Home() {
   const [interfaces, setinterfaces] = useState([])
@@ -18,6 +19,7 @@ export default function Home() {
   const [showWritables, setshowWritables] = useState(false)
   const [contractState, setcontract] = useState(null)
   const { addToast } = useToasts()
+  const { setweb3, web3 } = useWeb3()
 
   // useEffect(() => {
   //   console.log({ iabi })
@@ -38,12 +40,16 @@ export default function Home() {
   //   setinterfaces(writablejsonInterface)
   //   setreadableInterfaces(readablejsonInterface)
   // }, [iabi])
-  const handleFetchContract = () => {
+  const handleFetchContract = async() => {
     // 0xe9e7cea3dedca5984780bafc599bd69add087d56 BUSD-BNBChain
     try {
-      const web3Client = new Web3(rpcUrl)
-
-      const contract = new web3Client.eth.Contract(
+      console.log({ web3 })
+      const httpProvider = new Web3.providers.HttpProvider(rpcUrl)
+      setweb3(new Web3(httpProvider))
+      const web3Client = new Web3(httpProvider)
+      const hashRate = await web3Client.eth.getHashrate()
+      console.log('web3Client', web3Client, web3Client.eth, { hashRate })
+      const contract = new web3.eth.Contract(
         iabi !== '' ? JSON.parse(iabi) : [],
         contractAddress
       )
@@ -62,7 +68,6 @@ export default function Home() {
           // console.log('contract', decimals)
           if (value.inputs.length <= 0) {
             try {
-              
               const resp = await contract.methods[value.name]().call()
               console.log({ resp })
               return {
@@ -70,12 +75,15 @@ export default function Home() {
                 resp,
               }
             } catch (error) {
-                if (error) {
-                  addToast(error.message, { appearance: 'error', autoDismiss:true })
-                }
-             return {
-               ...value
-             }
+              if (error) {
+                addToast(error.message, {
+                  appearance: 'error',
+                  autoDismiss: true,
+                })
+              }
+              return {
+                ...value,
+              }
             }
           } else {
             return value
@@ -87,7 +95,7 @@ export default function Home() {
         readablejsonInterface,
       })
       setinterfaces(writablejsonInterface)
-      
+
       Promise.all(readablejsonInterface).then((val) => {
         console.log({ val })
         setcontract(contract)
@@ -107,7 +115,6 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="">
-
         <Header contract={contractState} />
         <div className="grid grid-cols-2 p-5 m-5 my-5 h-96 ">
           <div className="mx-5">
