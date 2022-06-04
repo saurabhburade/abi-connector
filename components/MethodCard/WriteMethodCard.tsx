@@ -1,19 +1,28 @@
 import { useWeb3React } from '@web3-react/core'
 import React from 'react'
+import Web3 from 'web3'
 import useWeb3 from '../../hooks/useWeb3'
 
 type Props = {}
 
-export default function WriteMethodCard({ value, contract }) {
+export default function WriteMethodCard({ value, contractAddress, abi }) {
   const { account, library } = useWeb3React()
+
   const handleCall = async (e) => {
     e.preventDefault()
+    if (!library) return
+    const web3Client = new Web3(library)
+    const contract = new web3Client.eth.Contract(
+      abi !== '' ? JSON.parse(abi) : [],
+      contractAddress
+    )
     const args = value?.inputs?.map((val, idx) => {
       return e.target[idx].value
     })
     console.log(
       'handleCall',
       e.target[1].value,
+      library,
       document.getElementById(e.target[0].id),
       args
     )
@@ -22,8 +31,10 @@ export default function WriteMethodCard({ value, contract }) {
       console.log(
         { contract },
         contract?.methods[value?.name](...args),
-        library
-      ,account)
+        library,
+        account
+      )
+
       const txn = await contract?.methods[value?.name](...args).send({
         from: account,
       })
@@ -37,14 +48,13 @@ export default function WriteMethodCard({ value, contract }) {
         <p>{value?.name}</p>
         <form onSubmit={handleCall}>
           {value?.inputs?.map((ivalue, idx) => (
-            <>
-              <div className="mb-3 xl:w-96">
-                <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                  {ivalue?.internalType}
-                </label>
-                <input
-                  type="text"
-                  className="
+            <div className="mb-3 xl:w-96" key={ivalue?.name}>
+              <label className="inline-block mb-2 text-sm text-gray-500 form-label">
+                {ivalue?.internalType}
+              </label>
+              <input
+                type="text"
+                className="
         form-control
         m-0
         block
@@ -60,13 +70,10 @@ export default function WriteMethodCard({ value, contract }) {
         ease-in-out
         focus:border-blue-600 focus:text-gray-100 focus:text-gray-700 focus:outline-none
       "
-                  id={value.name + '_' + idx}
-                  placeholder={ivalue?.internalType}
-                />
-              </div>
-
-              {/* <input type="text" /> */}
-            </>
+                id={value.name + '_' + idx}
+                placeholder={ivalue?.internalType}
+              />
+            </div>
           ))}
           <button
             type="submit"

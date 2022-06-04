@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Web3 from 'web3'
 import factory from '../config/abis/factory.json'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Header from '../components/Header/Header'
 import WriteMethodCard from '../components/MethodCard/WriteMethodCard'
 import ReadMethodCard from '../components/MethodCard/ReadMethodCard'
@@ -10,6 +10,7 @@ import ReadMethodCard from '../components/MethodCard/ReadMethodCard'
 import { ToastProvider, useToasts } from 'react-toast-notifications'
 import useWeb3 from '../hooks/useWeb3'
 import WalletConnect from '../components/WalletConnect/WalletConnect'
+import { useWeb3React } from '@web3-react/core'
 
 export default function Home() {
   const [interfaces, setinterfaces] = useState([])
@@ -21,6 +22,8 @@ export default function Home() {
   const [contractState, setcontract] = useState(null)
   const { addToast } = useToasts()
   const { setweb3, web3 } = useWeb3()
+  const { library } = useWeb3React()
+  const refEth = useRef(library)
 
   // useEffect(() => {
   //   console.log({ iabi })
@@ -41,73 +44,78 @@ export default function Home() {
   //   setinterfaces(writablejsonInterface)
   //   setreadableInterfaces(readablejsonInterface)
   // }, [iabi])
-  const handleFetchContract = async() => {
+
+
+  const handleFetchContract = async () => {
     // 0xe9e7cea3dedca5984780bafc599bd69add087d56 BUSD-BNBChain
-    try {
-      console.log({ web3 })
-      const httpProvider = new Web3.providers.HttpProvider(rpcUrl)
-      setweb3(new Web3(httpProvider))
-      const web3Client = new Web3(httpProvider)
-      const hashRate = await web3Client.eth.getHashrate()
-      console.log('web3Client', web3Client, web3Client.eth, { hashRate })
-      const contract = new web3.eth.Contract(
-        iabi !== '' ? JSON.parse(iabi) : [],
-        contractAddress
-      )
-      const jsonInterface = contract._jsonInterface
-      const writablejsonInterface = jsonInterface.filter(
-        (value, idx) =>
-          value.stateMutability !== 'view' && value.type === 'function'
-      )
-      const readablejsonInterface = jsonInterface
-        .filter(
-          (value, idx) =>
-            value.stateMutability == 'view' && value.type === 'function'
+      try {
+        const httpProvider = new Web3.providers.HttpProvider(rpcUrl)
+        setweb3(new Web3(httpProvider))
+
+        const web3Client =
+          library !== refEth.current && library
+            ? new Web3(library)
+            : new Web3(httpProvider)
+        console.log({ web3, library, web3Client })
+        const readableContract = new web3Client.eth.Contract(
+          iabi !== '' ? JSON.parse(iabi) : [],
+          contractAddress
         )
-        .map(async (value, idx) => {
-          // const decimals = await contract.methods['_decimals']().call()
-          // console.log('contract', decimals)
-          if (value.inputs.length <= 0) {
-            try {
-              const resp = await contract.methods[value.name]().call()
-              console.log({ resp })
-              return {
-                ...value,
-                resp,
+
+        const jsonInterface = readableContract._jsonInterface
+        const writablejsonInterface = jsonInterface.filter(
+          (value, idx) =>
+            value.stateMutability !== 'view' && value.type === 'function'
+        )
+        const readablejsonInterface = jsonInterface
+          .filter(
+            (value, idx) =>
+              value.stateMutability == 'view' && value.type === 'function'
+          )
+          .map(async (value, idx) => {
+            // const decimals = await contract.methods['_decimals']().call()
+            // console.log('contract', decimals)
+            if (value.inputs.length <= 0) {
+              try {
+                const resp = await readableContract.methods[value.name]().call()
+                console.log({ resp })
+                return {
+                  ...value,
+                  resp,
+                }
+              } catch (error) {
+                if (error) {
+                  addToast(error.message, {
+                    appearance: 'error',
+                    autoDismiss: true,
+                  })
+                }
+                return {
+                  ...value,
+                }
               }
-            } catch (error) {
-              if (error) {
-                addToast(error.message, {
-                  appearance: 'error',
-                  autoDismiss: true,
-                })
-              }
-              return {
-                ...value,
-              }
+            } else {
+              return value
             }
-          } else {
-            return value
-          }
+          })
+        console.log({
+          writablejsonInterface,
+          jsonInterface,
+          readablejsonInterface,
         })
-      console.log({
-        writablejsonInterface,
-        jsonInterface,
-        readablejsonInterface,
-      })
-      setinterfaces(writablejsonInterface)
+        setinterfaces(writablejsonInterface)
 
-      Promise.all(readablejsonInterface).then((val) => {
-        console.log({ val })
-        setcontract(contract)
+        Promise.all(readablejsonInterface).then((val) => {
+          console.log({ val })
+          setcontract(readableContract)
 
-        setreadableInterfaces(val)
-      })
-    } catch (error) {
-      if (error) {
-        addToast(error.message, { appearance: 'error', autoDismiss: true })
+          setreadableInterfaces(val)
+        })
+      } catch (error) {
+        if (error) {
+          addToast(error.message, { appearance: 'error', autoDismiss: true })
+        }
       }
-    }
   }
   return (
     <div className="min-h-screen text-white bg-gradient-to-r from-slate-900 to-gray-900">
@@ -251,6 +259,8 @@ border-gray-500 bg-gray-800 bg-clip-padding
           {showWritables ? (
             <div className="mx-5">
               <h1 className="my-5 text-bold"> Writable Contract Information</h1>
+              <WalletConnect rpc={rpcUrl} />
+
               {interfaces.map((value, idx) => {
                 return (
                   //                 <div className="p-5 my-5 rounded-lg bg-slate-900">
@@ -289,20 +299,20 @@ border-gray-500 bg-gray-800 bg-clip-padding
                   //                     </>
                   //                   ))}
                   //                 </div>
-                  <>
-                    <WriteMethodCard
-                      value={value}
-                      key={value.name}
-                      contract={contractState}
-                    />
-                  </>
+
+                  <WriteMethodCard
+                    value={value}
+                    key={value.name}
+                    contract={contractState}
+                    contractAddress={contractAddress}
+                    abi={iabi}
+                  />
                 )
               })}
             </div>
           ) : (
             <div className="mx-5">
               <h1 className="my-5 text-bold"> Readable Contract Information</h1>
-                <WalletConnect rpc={ rpcUrl} />
 
               {readableInterfaces.map((value, idx) => {
                 return (
@@ -365,13 +375,12 @@ border-gray-500 bg-gray-800 bg-clip-padding
                   //                 })}
                   //               </p>
                   //             </div>
-                  <>
-                    <ReadMethodCard
-                      value={value}
-                      key={value.name}
-                      contract={contractState}
-                    />
-                  </>
+
+                  <ReadMethodCard
+                    value={value}
+                    key={value.name}
+                    contract={contractState}
+                  />
                 )
               })}
             </div>

@@ -11,12 +11,7 @@ const ReadMethodCard = ({ value, contract }) => {
     const args = value?.inputs?.map((val, idx) => {
       return e.target[idx].value
     })
-    console.log(
-      'handleCall',
-      e.target[1].value,
-      document.getElementById(e.target[0].id),
-      args
-    )
+ 
     if (contract) {
       console.log('====================================')
       console.log({ contract }, contract?.methods[value?.name](...args))
@@ -45,15 +40,14 @@ const ReadMethodCard = ({ value, contract }) => {
               </>
             )}
             {value?.inputs?.map((ivalue, idx) => (
-              <>
-                <div className="mb-3 xl:w-96">
-                  <label className="inline-block mb-2 text-sm text-gray-500 form-label">
-                    {ivalue?.name?.trim() !== '' ? ivalue?.name : '_'} :{' '}
-                    {ivalue?.internalType}
-                  </label>
-                  <input
-                    type="text"
-                    className="
+              <div className="mb-3 xl:w-96" key={ivalue?.name}>
+                <label className="inline-block mb-2 text-sm text-gray-500 form-label">
+                  {ivalue?.name?.trim() !== '' ? ivalue?.name : '_'} :{' '}
+                  {ivalue?.internalType}
+                </label>
+                <input
+                  type="text"
+                  className="
         form-control
         m-0
         block
@@ -69,11 +63,10 @@ const ReadMethodCard = ({ value, contract }) => {
         ease-in-out
         focus:border-blue-600 focus:text-gray-100 focus:outline-none
       "
-                    id={value.name + '_' + idx}
-                    placeholder={ivalue?.internalType}
-                  />
-                </div>
-              </>
+                  id={value.name + '_' + idx}
+                  placeholder={ivalue?.internalType}
+                />
+              </div>
             ))}
           </div>
           {value.inputs.length > 0 && (
@@ -91,7 +84,7 @@ const ReadMethodCard = ({ value, contract }) => {
           o/p :{/* {JSON.stringify(value?.outputs)} */}
           {value?.outputs?.map(({ type, ...ivalue }) => {
             return (
-              <span className="mx-2">
+              <span className="mx-2" key={ivalue?.name}>
                 {' '}
                 {ivalue?.name?.trim() !== '' ? ivalue?.name : '_'} : {type}{' '}
               </span>
@@ -104,9 +97,10 @@ const ReadMethodCard = ({ value, contract }) => {
             {output &&
               value?.outputs?.map((val, idx) => {
                 return (
-                  <span className="mx-2">
+                  <span className="mx-2" key={val?.name}>
                     {' '}
-                    {val?.name?.trim() !== '' ? val?.name : '_'} : {JSON.stringify(output[idx])}
+                    {val?.name?.trim() !== '' ? val?.name : '_'} :{' '}
+                    {JSON.stringify(output[idx])}
                   </span>
                 )
               })}

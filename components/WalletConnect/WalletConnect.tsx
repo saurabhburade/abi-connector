@@ -7,6 +7,7 @@ import { supportedChainIds } from '../../config/wallets'
 import { ChainId } from '../../config/chainIds'
 import Web3 from 'web3'
 import { InjectedConnector } from '@web3-react/injected-connector'
+import { useToasts } from 'react-toast-notifications'
 type Props = {}
 //  const injected = new InjectedConnector({
 //    supportedChainIds,
@@ -34,6 +35,8 @@ const WalletConnect = ({ rpc }) => {
   const [customChainId, setcustomChainId] = useState(1)
   // const [customRPC, setcustomRPC] = useState('')
   const { connector, activate, account, chainId } = useWeb3React()
+    const { addToast } = useToasts()
+
   //   console.log(
   //     { supportedChainIds, ChainId: Object.getOwnPropertyNames(ChainId) },
   //     ChainId,
@@ -87,6 +90,7 @@ const WalletConnect = ({ rpc }) => {
       closeModal()
     } catch (error) {
       console.log({ error })
+       addToast(error.message, { appearance: 'error', autoDismiss: true })
     }
   }
   return (
@@ -202,14 +206,14 @@ const WalletConnect = ({ rpc }) => {
                           <>
                             <div
                               onClick={handleConnect}
-                              className="p-5 m-1 cursor-pointer rounded-2xl bg-slate-700"
+                              className="flex flex-col items-center justify-center w-full p-5 m-1 cursor-pointer rounded-2xl bg-slate-700"
                             >
                               <img
                                 src={val.logo}
                                 alt={val.name}
-                                className="px-3"
+                                className="w-32 px-3"
                               />
-                              <p className="text-sm text-center text-gray-200">
+                              <p className="font-medium text-center text-gray-200 text-md">
                                 {val.name}
                               </p>
                             </div>
@@ -221,6 +225,7 @@ const WalletConnect = ({ rpc }) => {
                       Please make sure to connect wallet with the ChainId you
                       are going to interact.
                     </p>
+                    <a href="#">Read guide to add new chain to Metamask</a>
                   </div>
                   {/* 
                   <div className="mt-4">
